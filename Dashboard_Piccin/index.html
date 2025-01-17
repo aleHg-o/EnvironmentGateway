@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Sensori</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            padding: 30px;
+            background-color: #f1f9fc;
+            color: #333;
+            margin: 0;
+            text-align: center;
+        }
+        h1 {
+            color: #007BFF;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 80%;
+            margin: 30px auto;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        #errorMessage {
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .timestamp {
+            font-style: italic;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Sensori</h1>
+    
+    <div id="errorMessage"></div> <!-- Area per visualizzare eventuali errori -->
+
+    <!-- La tabella per visualizzare i dati -->
+    <table id="sensorData">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Motion Sensor</th>
+                <th>Sound Sensor</th>
+                <th>Photoresistor</th>
+                <th>Humidity</th>
+                <th>Temperature</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- I dati verranno caricati qui -->
+        </tbody>
+    </table>
+
+    <script>
+        let rowCounter = 1; // Variabile per contare le righe
+
+        // Funzione per aggiornare la tabella con i dati dei sensori
+        function updateSensorData() {
+            fetch('http://127.0.0.1:5000/api/sensors')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();  // Converte la risposta in formato JSON
+                })
+                .then(data => {
+                    console.log("Dati ricevuti:", data); // Log dei dati ricevuti
+                    const tableBody = document.getElementById('sensorData').getElementsByTagName('tbody')[0];
+
+                    // Pulisce il messaggio di errore se i dati sono presenti
+                    document.getElementById('errorMessage').innerText = "";
+
+                    if (data.length === 0) {
+                        document.getElementById('errorMessage').innerText = "Nessun dato disponibile.";
+                        return;
+                    }
+
+                    // Crea una riga per ogni sensore
+                    data.forEach(sensor => {
+                        // Crea la riga della tabella
+                        const row = document.createElement('tr');
+
+                        // Numero della riga
+                        const rowNumberCell = document.createElement('td');
+                        rowNumberCell.textContent = rowCounter++;  // Incrementa il numero della riga
+                        row.appendChild(rowNumberCell);
+
+                        const motionSensorCell = document.createElement('td');
+                        motionSensorCell.textContent = sensor["Motion sensor"];
+                        row.appendChild(motionSensorCell);
+
+                        const soundSensorCell = document.createElement('td');
+                        soundSensorCell.textContent = sensor["Sound sensor"];
+                        row.appendChild(soundSensorCell);
+
+                        const photoresistorCell = document.createElement('td');
+                        photoresistorCell.textContent = sensor["Photoresistor"];
+                        row.appendChild(photoresistorCell);
+
+                        const humidityCell = document.createElement('td');
+                        humidityCell.textContent = sensor["humidity"];
+                        row.appendChild(humidityCell);
+
+                        const temperatureCell = document.createElement('td');
+                        temperatureCell.textContent = sensor["temperature"];
+                        row.appendChild(temperatureCell);
+
+                        // Aggiungi il timestamp
+                        const timestampCell = document.createElement('td');
+                        const timestamp = new Date().toLocaleString();  // Ottieni il timestamp corrente
+                        timestampCell.innerHTML = `<span class="timestamp">${timestamp}</span>`;
+                        row.appendChild(timestampCell);
+
+                        // Aggiungi la riga alla tabella
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Errore nel recupero dei dati:', error);
+                    document.getElementById('errorMessage').innerText = "Errore nel recupero dei dati: " + error.message;
+                });
+        }
+
+        // Chiamare la funzione di aggiornamento ogni 2 secondi (2000ms)
+        setInterval(updateSensorData, 2000);
+
+        // Iniziare subito il caricamento dei dati
+        updateSensorData();
+    </script>
+</body>
+</html>
