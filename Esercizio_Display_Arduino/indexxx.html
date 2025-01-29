@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invia Messaggio a Arduino</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Invia un messaggio a Arduino</h1>
+    <input type="text" id="messageInput" placeholder="Scrivi il messaggio da inviare" />
+    <button onclick="sendMessage()">Invia</button>
+
+    <script>
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+
+            if (message.trim() === "") {
+                alert("Inserisci un messaggio valido!");
+                return;
+            }
+
+            fetch('http://localhost:5000/send-to-arduino', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert("Messaggio inviato con successo: " + data.message);
+                } else if (data.error) {
+                    alert("Errore: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert("Errore nella comunicazione con il server.");
+            });
+        }
+    </script>
+</body>
+</html>
